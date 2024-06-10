@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "backend"
+version = "0.1.0"
+description = ""
+authors = ["Simon Wisdom <simonowisdom@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+flask = "^3.0.3"
+pymongo = {extras = ["srv"], version = "^4.7.3"}
+python-dotenv = "^1.0.1"
+linkedin-api = "^2.1.1"
+requests = "^2.32.3"
+anthropic = "^0.28.0"
+langchain = "^0.2.3"
+langchain-community = "^0.2.4"
+langchain-core = "^0.2.5"
+langchain-anthropic = "^0.1.15"
+replicate = "^0.26.0"
+pillow = "^10.3.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
