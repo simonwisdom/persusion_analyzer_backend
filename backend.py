@@ -20,7 +20,7 @@ def fetch_profile():
 def analyze_profile():
     return analyze_profile_endpoint()
 
-@app.route('/api/messages', methods=['POST'])
+@app.route('/messages', methods=['POST'])
 def messages_endpoint():
     return chatbot_endpoint()
 
