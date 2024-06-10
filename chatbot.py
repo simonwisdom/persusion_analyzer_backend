@@ -86,6 +86,7 @@ def chatbot_endpoint():
                 "thought": thought,
                 "generated_message": assistant_message
             })
+            
         elif role == 'user':
             response = predict(user_prompt + "\n\nHuman: " + message + "\n\nYou:", max_tokens=100)
             logging.info("User prompt !!!: %s\n\nHuman: %s\n\nYou: %s", user_prompt, message, response)
