@@ -1,10 +1,12 @@
 import logging
 from flask import Flask
+from flask_cors import CORS
 from fetch_profile import fetch_profile_endpoint
 from analyze_profile import analyze_profile_endpoint
 from chatbot import chatbot_endpoint
 
 app = Flask(__name__)
+CORS(app)
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
