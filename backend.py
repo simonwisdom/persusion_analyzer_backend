@@ -1,12 +1,5 @@
-import os
-import json
 import logging
-from dotenv import load_dotenv
-from flask import Flask, request, jsonify
-from pymongo import MongoClient
-from pymongo.server_api import ServerApi
-from bson import json_util
-import gridfs
+from flask import Flask
 from fetch_profile import fetch_profile_endpoint
 from analyze_profile import analyze_profile_endpoint
 from chatbot import chatbot_endpoint

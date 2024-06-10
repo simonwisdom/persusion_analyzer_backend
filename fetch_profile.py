@@ -1,9 +1,8 @@
 import logging
 import json
 from flask import request, jsonify
-from pymongo import MongoClient
 from bson import json_util
-from utils import get_platform, normalize_profile_url, fetch_profile_from_api, fetch_and_save_profile_picture, calculate_profile_completeness, client, db, collection
+from utils import get_platform, normalize_profile_url, fetch_profile_from_api, calculate_profile_completeness, collection
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -27,11 +26,11 @@ def fetch_profile_endpoint():
     if not profile_data:
         return jsonify({"error": "Error fetching profile data"}), 500
 
-    # Fetch and save the profile picture
-    profile_pic_id = fetch_and_save_profile_picture(normalized_profile_url)
-    if not profile_pic_id:
-        logging.error("Failed to fetch and save profile picture")
-        profile_pic_id = None
+    # # Fetch and save the profile picture
+    # profile_pic_id = fetch_and_save_profile_picture(normalized_profile_url)
+    # if not profile_pic_id:
+    #     logging.error("Failed to fetch and save profile picture")
+    #     profile_pic_id = None
 
     demographic_profile = {
         'Name': f"{profile_data.get('first_name')} {profile_data.get('last_name')}",
@@ -42,7 +41,7 @@ def fetch_profile_endpoint():
         'Email': profile_data.get('personal_email'),
         'Website': profile_data.get('profile_pic_url'),
         'Phone Numbers': profile_data.get('personal_contact_number'),
-        'Profile Picture ID': profile_pic_id,
+        # 'Profile Picture ID': profile_pic_id,
         'Skills': profile_data.get('skills'),
         'Accomplishment Courses': profile_data.get('accomplishment_courses'),
         'Accomplishment Honors Awards': profile_data.get('accomplishment_honors_awards'),
@@ -84,5 +83,3 @@ def fetch_profile_endpoint():
     collection.insert_one({'demographic_profile': demographic_profile, 'profile_url': normalized_profile_url})
 
     return jsonify(json.loads(json_util.dumps(demographic_profile)))
-
-import datetime

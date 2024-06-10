@@ -2,9 +2,8 @@ import json
 import logging
 import datetime
 from flask import request, jsonify
-from pymongo import MongoClient
 from bson import json_util
-from utils import get_platform, normalize_profile_url, profile_chain, reaction_chain, client, db, collection
+from utils import get_platform, normalize_profile_url, predict, collection
 from prompts import profile_prompt_template, reaction_prompt_template
 
 
@@ -30,21 +29,20 @@ def analyze_profile_endpoint():
         logging.debug(f"Profile analysis found in MongoDB for profile URL: {normalized_profile_url}")
         return jsonify(json.loads(json_util.dumps(existing_profile)))
 
-    # Run the profile chain to get the psychological profile
+    # Run the profile prompt to get the psychological profile
     profile_prompt_input = {"demographic_profile": json.dumps(demographic_profile)}
 
     # Save input data
-    save_data_to_file('profile_chain_input.json', {"demographic_profile": json.dumps(demographic_profile)})
+    save_data_to_file('profile_prompt_input.json', {"demographic_profile": json.dumps(demographic_profile)})
     
     formatted_prompt = profile_prompt_template.format(**profile_prompt_input)
-    logging.debug("Full prompt sent to profile_chain: %s", formatted_prompt)
+    logging.debug("Full prompt sent to profile prompt: %s", formatted_prompt)
 
-    # Run the profile chain to get the psychological profile
-    profile_result = profile_chain.invoke(profile_prompt_input)
-    profile_content = profile_result.content
+    # Run the profile prompt to get the psychological profile
+    profile_content = predict(formatted_prompt)
 
     # Save output data
-    save_data_to_file('profile_chain_output.json', profile_content)
+    save_data_to_file('profile_prompt_output.json', profile_content)
     
     logging.debug("Profile content: %s", profile_content)
 
@@ -60,17 +58,16 @@ def analyze_profile_endpoint():
         logging.error(f"Error decoding JSON: {e}")
         return jsonify({"error": "Error decoding JSON from profile content"}), 500
 
-    # Run the reaction chain using the psychological profile and demographic profile to get the persuasion plan
+    # Run the reaction prompt using the psychological profile and demographic profile to get the persuasion plan
     reaction_prompt_input = {
         "demographic_profile": json.dumps(demographic_profile),
         "psychological_profile": json.dumps(psychological_profile)
     }
 
     formatted_reaction_prompt = reaction_prompt_template.format(**reaction_prompt_input)
-    logging.debug("Full prompt sent to reaction_chain: %s", formatted_reaction_prompt)
+    logging.debug("Full prompt sent to reaction prompt: %s", formatted_reaction_prompt)
 
-    reaction_result = reaction_chain.invoke(reaction_prompt_input)
-    reaction_content = reaction_result.content
+    reaction_content = predict(formatted_reaction_prompt)
     logging.debug("Reaction content: %s", reaction_content)
     
     if not reaction_content:

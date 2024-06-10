@@ -1,21 +1,16 @@
 import os
-import json
 import logging
 import requests
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
-from bson import json_util
-from langchain_anthropic import ChatAnthropic
-from langchain_core.runnables import RunnableSequence
-from langchain_core.prompts import PromptTemplate
-from prompts import profile_prompt_template, reaction_prompt_template
-from PIL import Image
-from io import BytesIO
-import gridfs
-from bson import json_util
+# from langchain_anthropic import ChatAnthropic
+# from prompts import profile_prompt_template, reaction_prompt_template
+# from PIL import Image
+# from io import BytesIO
+# import gridfs
 from urllib.parse import urlparse
+from anthropic import Anthropic
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -26,17 +21,26 @@ load_dotenv()
 
 proxycurl_api_key = os.getenv('PROXYCURL_API_KEY')
 
-llm = ChatAnthropic(
-    model="claude-3-haiku-20240307",
-    temperature=1,
-    max_tokens=1024,
-    max_retries=2,
-    api_key=os.environ.get("ANTHROPIC_API_KEY")
-)
+anthropic_client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-# Create RunnableLambdas
-profile_chain = profile_prompt_template | llm
-reaction_chain = reaction_prompt_template | llm
+def predict(prompt, max_tokens=1024):
+    message = anthropic_client.messages.create(
+        max_tokens=max_tokens,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        model="claude-3-haiku-20240307",
+    )
+    logging.debug("Type of message.content: %s", type(message.content))
+    if isinstance(message.content, list) and len(message.content) > 0:
+        text_block = message.content[0]
+        if hasattr(text_block, 'text'):
+            return text_block.text
+    return ""
+
 
 # Get API key and MongoDB connection string from environment variables
 proxycurl_api_key = os.getenv('PROXYCURL_API_KEY')
@@ -46,46 +50,48 @@ mongodb_uri = os.getenv('MONGODB_URI')
 client = MongoClient(mongodb_uri, server_api=ServerApi('1'))
 db = client["persuasion"]
 collection = db["linkedin-profile"]
-fs = gridfs.GridFS(db)
 
-def fetch_and_save_profile_picture(profile_url):
-    headers = {'Authorization': f'Bearer {proxycurl_api_key}'}
-    api_endpoint = 'https://nubela.co/proxycurl/api/linkedin/person/profile-picture'
-    params = {'linkedin_person_profile_url': profile_url}
 
-    try:
-        response = requests.get(api_endpoint, params=params, headers=headers)
-        response.raise_for_status()
-        profile_pic_url = response.json().get("tmp_profile_pic_url")
+# fs = gridfs.GridFS(db)
 
-        if profile_pic_url:
-            image_response = requests.get(profile_pic_url)
-            image_response.raise_for_status()
+# def fetch_and_save_profile_picture(profile_url):
+#     headers = {'Authorization': f'Bearer {proxycurl_api_key}'}
+#     api_endpoint = 'https://nubela.co/proxycurl/api/linkedin/person/profile-picture'
+#     params = {'linkedin_person_profile_url': profile_url}
 
-            # Check if the response content is an image
-            content_type = image_response.headers['Content-Type']
-            if 'image' not in content_type:
-                logging.error(f"Invalid content type: {content_type}")
-                return None
+#     try:
+#         response = requests.get(api_endpoint, params=params, headers=headers)
+#         response.raise_for_status()
+#         profile_pic_url = response.json().get("tmp_profile_pic_url")
 
-            try:
-                image = Image.open(BytesIO(image_response.content))
-                img_byte_arr = BytesIO()
-                image.save(img_byte_arr, format='JPEG')
-                img_byte_arr = img_byte_arr.getvalue()
+#         if profile_pic_url:
+#             image_response = requests.get(profile_pic_url)
+#             image_response.raise_for_status()
 
-                # Save the image in GridFS
-                image_id = fs.put(img_byte_arr, filename=f"{profile_url}.jpg")
-                return image_id
-            except Exception as e:
-                logging.error(f"Error processing image: {e}")
-                return None
-        else:
-            logging.error("No profile picture URL found in the response")
-            return None
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error fetching profile picture: {e}")
-        return None
+#             # Check if the response content is an image
+#             content_type = image_response.headers['Content-Type']
+#             if 'image' not in content_type:
+#                 logging.error(f"Invalid content type: {content_type}")
+#                 return None
+
+#             try:
+#                 image = Image.open(BytesIO(image_response.content))
+#                 img_byte_arr = BytesIO()
+#                 image.save(img_byte_arr, format='JPEG')
+#                 img_byte_arr = img_byte_arr.getvalue()
+
+#                 # Save the image in GridFS
+#                 image_id = fs.put(img_byte_arr, filename=f"{profile_url}.jpg")
+#                 return image_id
+#             except Exception as e:
+#                 logging.error(f"Error processing image: {e}")
+#                 return None
+#         else:
+#             logging.error("No profile picture URL found in the response")
+#             return None
+#     except requests.exceptions.RequestException as e:
+#         logging.error(f"Error fetching profile picture: {e}")
+#         return None
 
 def get_platform(profile_url):
     domain = urlparse(profile_url).netloc

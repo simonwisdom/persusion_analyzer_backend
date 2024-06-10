@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import re
 import logging
-from utils import llm
+from utils import predict
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s:%(message)s')
@@ -74,7 +74,7 @@ def chatbot_endpoint():
         """
 
         if role == 'persuader':
-            response = llm.predict(persuader_prompt + "\n\nHuman: " + message + "\n\nAssistant:", max_tokens=100)
+            response = predict(persuader_prompt + "\n\nHuman: " + message + "\n\nAssistant:", max_tokens=100)
             generated_message = response.strip()
             thought_regex = r"<!--thought(.*?)-->"
             thought_match = re.search(thought_regex, generated_message, re.DOTALL)
@@ -87,7 +87,7 @@ def chatbot_endpoint():
                 "generated_message": assistant_message
             })
         elif role == 'user':
-            response = llm.predict(user_prompt + "\n\nHuman: " + message + "\n\nYou:", max_tokens=100)
+            response = predict(user_prompt + "\n\nHuman: " + message + "\n\nYou:", max_tokens=100)
             logging.info("User prompt !!!: %s\n\nHuman: %s\n\nYou: %s", user_prompt, message, response)
 
             user_message = response.strip()
