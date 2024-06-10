@@ -19,6 +19,7 @@ langchain-core = "^0.2.5"
 langchain-anthropic = "^0.1.15"
 replicate = "^0.26.0"
 pillow = "^10.3.0"
+gunicorn = "^22.0.0"
 
 
 [build-system]
