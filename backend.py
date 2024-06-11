@@ -12,15 +12,15 @@ CORS(app, resources={r"/api/*": {"origins": ["persuasion-analyzer-frontend-4x7xb
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-@app.route('/fetch-profile', methods=['POST'])
+@app.route('api/fetch-profile', methods=['POST'])
 def fetch_profile():
     return fetch_profile_endpoint()
 
-@app.route('/analyze-profile', methods=['POST'])
+@app.route('api/analyze-profile', methods=['POST'])
 def analyze_profile():
     return analyze_profile_endpoint()
 
-@app.route('/messages', methods=['POST'])
+@app.route('api/messages', methods=['POST'])
 def messages_endpoint():
     return chatbot_endpoint()
 
