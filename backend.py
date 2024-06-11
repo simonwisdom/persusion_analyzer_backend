@@ -6,7 +6,7 @@ from analyze_profile import analyze_profile_endpoint
 from chatbot import chatbot_endpoint
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": ["persuasion-analyzer-frontend-4x7xb1adg-simonwisdoms-projects.vercel.app"]}})
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
